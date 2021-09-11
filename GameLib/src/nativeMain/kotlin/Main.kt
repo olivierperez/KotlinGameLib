@@ -1,0 +1,1 @@
+fun gameLibName(): String = "GameLib"
