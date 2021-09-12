@@ -16,7 +16,11 @@ kotlin {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
         isMingwX64 -> mingwX64("native") {
-            val main by compilations.getting
+            val main by compilations.getting {
+                dependencies {
+                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+                }
+            }
             val interop by main.cinterops.creating
         }
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
