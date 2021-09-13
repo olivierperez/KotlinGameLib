@@ -16,11 +16,7 @@ kotlin {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
         isMingwX64 -> mingwX64("native") {
-            val main by compilations.getting {
-                dependencies {
-                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
-                }
-            }
+            val main by compilations.getting
             val interop by main.cinterops.creating
         }
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
@@ -33,8 +29,19 @@ kotlin {
             }
         }
     }
+
     sourceSets {
-        val nativeMain by getting
+        all {
+            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("okio.ExperimentalFileSystem")
+        }
+        val nativeMain by getting {
+            val okioVersion = "3.0.0-alpha.10"
+            dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+                api("com.squareup.okio:okio:$okioVersion")
+            }
+        }
         val nativeTest by getting
     }
 }

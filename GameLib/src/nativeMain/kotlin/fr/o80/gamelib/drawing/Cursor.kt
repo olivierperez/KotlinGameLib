@@ -1,20 +1,18 @@
 package fr.o80.gamelib.drawing
 
-// TODO OPZ
-//import org.lwjgl.BufferUtils
-//import org.lwjgl.glfw.GLFW
-//import org.lwjgl.glfw.GLFWImage
-//import java.awt.image.BufferedImage
-//import java.io.File
-//import javax.imageio.ImageIO
+import cnames.structs.GLFWcursor
+import interop.*
+import kotlinx.cinterop.CPointer
+import okio.Path
 
+// TODO OPZ
 class Cursor(
-//    file: File,
-//    hotspotX: Int,
-//    hotspotY: Int
+    filename: Path,
+    hotspotX: Int,
+    hotspotY: Int
 ) {
-//    var id: Long
-//        private set
+    var id: CPointer<GLFWcursor>? = null
+        private set
 //    val width: Int
 //    val height: Int
 
@@ -24,29 +22,34 @@ class Cursor(
 //        height = image.height
 //
 //        val raw = image.getRGB(0, 0, width, height, IntArray(width * height), 0, width)
-//        val buffer = BufferUtils.createByteBuffer(width * height * 4)
+//        val buffer = ByteArray(width * height * 4)
 //
 //        for (y in 0 until height) {
 //            for (x in 0 until width) {
-//                val pixel = raw[y * width + x]
-//                buffer.put((pixel shr 16 and 0xFF).toByte()) // red
-//                buffer.put((pixel shr 8 and 0xFF).toByte()) // green
-//                buffer.put((pixel and 0xFF).toByte()) // blue
-//                buffer.put((pixel shr 24 and 0xFF).toByte()) // alpha
+//                val index = y * width + x
+//                val pixel = raw[index]
+//                buffer.push( (pixel shr 16 and 0xFF).toByte() ) // red
+//                buffer.push( (pixel shr 8 and 0xFF).toByte() ) // green
+//                buffer.push( (pixel and 0xFF).toByte() ) // blue
+//                buffer.push( (pixel shr 24 and 0xFF).toByte() ) // alpha
 //            }
 //        }
-//        buffer.flip() // this will flip the cursor image vertically
+//        //buffer.flip() // this will flip the cursor image vertically
 //
-//        val cursorImg = GLFWImage.create()
-//        cursorImg.width(width)
-//        cursorImg.height(height)
-//        cursorImg.pixels(buffer)
+//        memScoped {
+//            val cursorImg = GLFWimage(alloc())
+//            val pixels = alloc<UByteVar>().apply { value = buffer.getUByteAt(0) }
 //
-//        id = GLFW.glfwCreateCursor(cursorImg, hotspotX, hotspotY)
+//            cursorImg.width = width
+//            cursorImg.height = height
+//            cursorImg.pixels = pixels.ptr
+//            id = glfwCreateCursor(cursorImg.ptr, hotspotX, hotspotY)
+//        }
+
     }
 
     fun unload() {
-//        GLFW.glfwDestroyCursor(id)
-//        id = -1
+        glfwDestroyCursor(id)
+        id = null
     }
 }

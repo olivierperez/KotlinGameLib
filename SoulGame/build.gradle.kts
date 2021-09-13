@@ -39,6 +39,10 @@ kotlin {
         }
     }
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("okio.ExperimentalFileSystem")
+        }
         val nativeMain by getting
         val nativeTest by getting
     }
