@@ -1,14 +1,25 @@
 package fr.o80.gamelib.image
 
+import okio.Buffer
 import okio.BufferedSource
 import okio.FileSystem
 import okio.Path
 
-data class Image(
-    val format: ImageFormat,
-    val width: Int,
-    val height: Int,
-)
+sealed interface ImageResult {
+
+    data class Image(
+        val format: ImageFormat,
+        val width: Int,
+        val height: Int,
+        val data: Buffer,
+        val rgb: IntArray
+    ): ImageResult
+
+    class Error(
+        val cause: String
+    ): ImageResult
+
+}
 
 enum class ImageFormat { PNG, UNKNOWN }
 
@@ -16,18 +27,13 @@ class ImageIO(
     private val fileSystem: FileSystem = FileSystem.SYSTEM
 ) {
 
-    fun read(path: Path): Image {
+    fun read(path: Path): ImageResult {
         fileSystem.read(path) {
             return when (getImageFormat()) {
                 ImageFormat.PNG -> PngImageReader().read(this)
-                else -> UNKNOWN_IMAGE
+                else -> ImageResult.Error(cause = "Image type unknown")
             }
         }
-    }
-
-    companion object {
-        val UNKNOWN_IMAGE: Image
-            get() = Image(format = ImageFormat.UNKNOWN, -1, -1)
     }
 }
 
@@ -43,4 +49,8 @@ private fun ByteArray.isPngHeader(): Boolean =
     this[0] == 137.toByte() &&
             this[1] == 80.toByte() &&
             this[2] == 78.toByte() &&
-            this[3] == 71.toByte()
+            this[3] == 71.toByte() &&
+            this[4] == 13.toByte() &&
+            this[5] == 10.toByte() &&
+            this[6] == 26.toByte() &&
+            this[7] == 10.toByte()
