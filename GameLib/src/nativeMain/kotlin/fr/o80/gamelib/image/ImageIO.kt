@@ -11,9 +11,10 @@ sealed interface ImageResult {
         val format: ImageFormat,
         val width: Int,
         val height: Int,
-        val data: Buffer,
-        val rgb: IntArray
-    ): ImageResult
+        val data: Buffer
+    ): ImageResult {
+        val rgb: IntArray get() = TODO()
+    }
 
     class Error(
         val cause: String
