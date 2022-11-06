@@ -9,6 +9,7 @@ import fr.o80.gamelib.loop.Window
 import fr.o80.gamelib.service.Services
 import fr.o80.carres.CarresSceneManager
 import fr.o80.carres.model.DrawingObjective
+import fr.o80.carres.model.digits
 import fr.o80.gamelib.dsl.Draw
 import interop.*
 import platform.opengl32.*
@@ -60,16 +61,53 @@ class DrawingScene(
     override suspend fun render() {
         draw {
             clear(0.3f)
+            val columnSize = (window.width - 2 * margin) / drawingObjective.columnsCount
+            val rowSize = (window.height - 2 * margin) / drawingObjective.rowsCount
 
             drawGrid(
                 width = window.width,
                 height = window.height,
                 margin = margin,
+                columnSize = columnSize,
+                rowSize = rowSize,
                 columnsCounts = drawingObjective.columnsCount,
                 rowsCounts = drawingObjective.rowsCount,
                 columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
                 rowsCountInVertical = drawingObjective.rowsCountInVertical,
             )
+
+            repeat(7) {
+                drawNumber(
+                    top = margin,
+                    left = margin + (3 + it) * columnSize,
+                    width = columnSize,
+                    height = rowSize,
+                    value = it
+                )
+            }
+            repeat(3) {
+                drawNumber(
+                    top = margin + rowSize,
+                    left = margin + (3 + it) * columnSize,
+                    width = columnSize,
+                    height = rowSize,
+                    value = 7 + it
+                )
+            }
+        }
+    }
+
+    private fun Draw.drawNumber(top: Float, left: Float, width: Float, height: Float, value: Int) {
+        pushed {
+            color(1f, 1f, 1f)
+            translate(left, top, 0f)
+            translate(.1f * width, .1f * height, 0f)
+            glScalef(.8f, .8f, 0f)
+            glScalef(width, height, 0f)
+
+            digits[value]!!.forEach { segment ->
+                line(segment.x1, segment.y1, segment.x2, segment.y2)
+            }
         }
     }
 
@@ -77,6 +115,8 @@ class DrawingScene(
         width: Int,
         height: Int,
         margin: Float,
+        columnSize: Float,
+        rowSize: Float,
         columnsCounts: Int,
         rowsCounts: Int,
         columnsCountInHorizontal: Int,
@@ -85,8 +125,6 @@ class DrawingScene(
         lineWidth(3f)
         color(0f, 0f, 0f)
 
-        val columnSize = (width - (2 * margin)) / columnsCounts
-        val rowSize = (height - (2 * margin)) / rowsCounts
         val horizontalNumbersWidth = columnsCountInHorizontal * columnSize
         val verticalNumbersHeight = rowsCountInVertical * rowSize
 
