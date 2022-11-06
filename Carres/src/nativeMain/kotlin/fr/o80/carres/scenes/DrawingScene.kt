@@ -60,16 +60,26 @@ class DrawingScene(
 
     override suspend fun render() {
         draw {
-            clear(0.3f)
-            val columnSize = (window.width - 2 * margin) / drawingObjective.columnsCount
-            val rowSize = (window.height - 2 * margin) / drawingObjective.rowsCount
+            clear(background)
+            val columnWidth = (window.width - 2 * margin) / drawingObjective.columnsCount
+            val rowHeight = (window.height - 2 * margin) / drawingObjective.rowsCount
+
+            drawNumbersBackground(
+                width = window.width,
+                height = window.height,
+                margin = margin,
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
+                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                rowsCountInVertical = drawingObjective.rowsCountInVertical,
+            )
 
             drawGrid(
                 width = window.width,
                 height = window.height,
                 margin = margin,
-                columnSize = columnSize,
-                rowSize = rowSize,
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
                 columnsCounts = drawingObjective.columnsCount,
                 rowsCounts = drawingObjective.rowsCount,
                 columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
@@ -78,14 +88,38 @@ class DrawingScene(
 
             drawNumbers(
                 margin = margin,
-                columnWidth = columnSize,
-                rowHeight = rowSize,
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
                 verticalNumbers = drawingObjective.verticalNumbers,
                 horizontalNumbers = drawingObjective.horizontalNumbers,
                 columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
                 rowsCountInVertical = drawingObjective.rowsCountInVertical,
             )
         }
+    }
+
+    private fun Draw.drawNumbersBackground(
+        width: Int,
+        height: Int,
+        margin: Float,
+        columnWidth: Float,
+        rowHeight: Float,
+        columnsCountInHorizontal: Int,
+        rowsCountInVertical: Int
+    ) {
+        color(numbersBackground)
+        quad(
+            x1 = margin + columnsCountInHorizontal * columnWidth,
+            y1 = margin,
+            x2 = width - margin,
+            y2 = margin + rowsCountInVertical * rowHeight
+        )
+        quad(
+            x1 = margin,
+            y1 = margin + rowsCountInVertical * rowHeight,
+            x2 = margin + columnsCountInHorizontal * columnWidth,
+            y2 = height - margin
+        )
     }
 
     private fun Draw.drawNumbers(
@@ -128,10 +162,10 @@ class DrawingScene(
 
     private fun Draw.drawNumber(top: Float, left: Float, width: Float, height: Float, value: Int) {
         pushed {
-            color(1f, 1f, 1f)
+            color(numbersColor)
             translate(left, top, 0f)
-            translate(.1f * width, .1f * height, 0f)
-            glScalef(.8f, .8f, 0f)
+            translate(.2f * width, .2f * height, 0f)
+            glScalef(.6f, .6f, 0f)
             glScalef(width, height, 0f)
 
             digits[value]!!.forEach { segment ->
@@ -144,35 +178,35 @@ class DrawingScene(
         width: Int,
         height: Int,
         margin: Float,
-        columnSize: Float,
-        rowSize: Float,
+        columnWidth: Float,
+        rowHeight: Float,
         columnsCounts: Int,
         rowsCounts: Int,
         columnsCountInHorizontal: Int,
         rowsCountInVertical: Int
     ) {
         lineWidth(3f)
-        color(0f, 0f, 0f)
+        color(gridColor)
 
-        val horizontalNumbersWidth = columnsCountInHorizontal * columnSize
-        val verticalNumbersHeight = rowsCountInVertical * rowSize
+        val horizontalNumbersWidth = columnsCountInHorizontal * columnWidth
+        val verticalNumbersHeight = rowsCountInVertical * rowHeight
 
         repeat(columnsCounts + 1) { columnIndex ->
-            val x = margin + columnIndex * columnSize
-            val top = if (columnIndex >= columnsCountInHorizontal) {
-                margin
-            } else {
+            val x = margin + columnIndex * columnWidth
+            val top = if (columnIndex in 1 until columnsCountInHorizontal) {
                 margin + verticalNumbersHeight
+            } else {
+                margin
             }
             line(x, top, x, height - margin)
         }
 
         repeat(rowsCounts + 1) { rowIndex ->
-            val y = margin + rowIndex * rowSize
-            val left = if (rowIndex >= rowsCountInVertical) {
-                margin
-            } else {
+            val y = margin + rowIndex * rowHeight
+            val left = if (rowIndex in 1 until rowsCountInVertical) {
                 margin + horizontalNumbersWidth
+            } else {
+                margin
             }
             line(left, y, width - margin, y)
         }
