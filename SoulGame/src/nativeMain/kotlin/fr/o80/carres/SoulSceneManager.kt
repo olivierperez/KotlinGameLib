@@ -1,9 +1,9 @@
-package fr.o80.soulgame
+package fr.o80.carres
 
 import fr.o80.gamelib.Scene
 import fr.o80.gamelib.SceneManager
 import fr.o80.gamelib.loop.GameLoop
-import fr.o80.soulgame.scenes.MainScene
+import fr.o80.carres.scenes.MainScene
 
 // TODO OPZ
 class SoulSceneManager(

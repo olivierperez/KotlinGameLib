@@ -131,6 +131,11 @@ class Draw {
     }
 
     @Drawer
+    fun pointSize(size: Float) {
+        glPointSize(size)
+    }
+
+    @Drawer
     fun point(x: Double, y: Double, z: Double) {
         glBegin(GL_POINTS)
         glVertex3d(x, y, z)

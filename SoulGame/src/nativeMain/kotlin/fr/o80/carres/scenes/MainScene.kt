@@ -1,4 +1,4 @@
-package fr.o80.soulgame.scenes
+package fr.o80.carres.scenes
 
 import fr.o80.gamelib.Scene
 import fr.o80.gamelib.dsl.draw
@@ -7,7 +7,7 @@ import fr.o80.gamelib.loop.MouseButtonPipeline
 import fr.o80.gamelib.loop.MouseMovePipeline
 import fr.o80.gamelib.loop.Window
 import fr.o80.gamelib.service.Services
-import fr.o80.soulgame.SoulSceneManager
+import fr.o80.carres.SoulSceneManager
 import interop.*
 
 class MainScene(

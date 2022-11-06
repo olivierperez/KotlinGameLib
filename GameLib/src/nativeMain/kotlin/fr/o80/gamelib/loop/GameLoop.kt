@@ -86,9 +86,7 @@ class GameLoop(
             throw IllegalStateException("Failed to create window")
         }
 
-        services = Services(
-            game.createCursorManager(window)
-        )
+        services = Services()
 
         glfwSetKeyCallback(
             window.id,

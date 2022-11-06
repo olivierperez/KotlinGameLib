@@ -1,10 +1,8 @@
-package fr.o80.soulgame
+package fr.o80.carres
 
 import fr.o80.gamelib.Game
 import fr.o80.gamelib.SceneManager
 import fr.o80.gamelib.loop.GameLoop
-import fr.o80.gamelib.loop.Window
-import fr.o80.gamelib.service.cursor.CursorManager
 
 class SoulGame : Game() {
 
@@ -15,6 +13,5 @@ class SoulGame : Game() {
     override val debug: Boolean = true
 
     override fun createSceneManager(gameLoop: GameLoop): SceneManager = SoulSceneManager(gameLoop)
-    override fun createCursorManager(window: Window): CursorManager = SoulCursorManager(window)
 
 }

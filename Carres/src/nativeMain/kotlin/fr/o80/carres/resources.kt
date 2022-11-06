@@ -1,4 +1,4 @@
-package fr.o80.soulgame
+package fr.o80.carres
 
 import okio.FileSystem
 import okio.Path
