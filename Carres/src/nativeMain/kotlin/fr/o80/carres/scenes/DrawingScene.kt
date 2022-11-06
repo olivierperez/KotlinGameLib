@@ -76,22 +76,51 @@ class DrawingScene(
                 rowsCountInVertical = drawingObjective.rowsCountInVertical,
             )
 
-            repeat(7) {
+            drawNumbers(
+                margin = margin,
+                columnWidth = columnSize,
+                rowHeight = rowSize,
+                verticalNumbers = drawingObjective.verticalNumbers,
+                horizontalNumbers = drawingObjective.horizontalNumbers,
+                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                rowsCountInVertical = drawingObjective.rowsCountInVertical,
+            )
+        }
+    }
+
+    private fun Draw.drawNumbers(
+        margin: Float,
+        columnWidth: Float,
+        rowHeight: Float,
+        verticalNumbers: List<List<Int>>,
+        horizontalNumbers: List<List<Int>>,
+        columnsCountInHorizontal: Int,
+        rowsCountInVertical: Int
+    ) {
+        verticalNumbers.forEachIndexed { columnIndex, column ->
+            val columnLeft = margin + (columnIndex + columnsCountInHorizontal) * columnWidth
+            column.forEachIndexed { numberIndex, number ->
+                val numberTop = margin + (rowsCountInVertical - column.size + numberIndex) * rowHeight
                 drawNumber(
-                    top = margin,
-                    left = margin + (3 + it) * columnSize,
-                    width = columnSize,
-                    height = rowSize,
-                    value = it
+                    top = numberTop,
+                    left = columnLeft,
+                    width = columnWidth,
+                    height = rowHeight,
+                    value = number
                 )
             }
-            repeat(3) {
+        }
+
+        horizontalNumbers.forEachIndexed { rowIndex, row ->
+            val rowTop = margin + (rowIndex + rowsCountInVertical) * rowHeight
+            row.forEachIndexed { numberIndex, number ->
+                val numberLeft = margin + (columnsCountInHorizontal - row.size + numberIndex) * columnWidth
                 drawNumber(
-                    top = margin + rowSize,
-                    left = margin + (3 + it) * columnSize,
-                    width = columnSize,
-                    height = rowSize,
-                    value = 7 + it
+                    top = rowTop,
+                    left = numberLeft,
+                    width = columnWidth,
+                    height = rowHeight,
+                    value = number
                 )
             }
         }
