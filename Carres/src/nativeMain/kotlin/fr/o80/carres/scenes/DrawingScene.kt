@@ -29,6 +29,8 @@ class DrawingScene(
 
     private var mousePosition: SquarePosition? = null
 
+    private lateinit var convertMousePositionToGrid: ConvertMousePositionToGrid
+
     private val drawingObjective = DrawingObjective(
         verticalNumbers = listOf(
             listOf(4),
@@ -56,39 +58,16 @@ class DrawingScene(
         mouseMovePipeline: MouseMovePipeline
     ) {
         this.window = window
+        this.columnWidth = (window.width - 2 * margin) / drawingObjective.columnsCount
+        this.rowHeight = (window.height - 2 * margin) / drawingObjective.rowsCount
+        this.convertMousePositionToGrid = ConvertMousePositionToGrid(
+            window.width, window.height, margin, columnWidth, rowHeight
+        )
+
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
         mouseMovePipeline.onMove { x, y ->
-            mousePosition = globalToSquarePosition(
-                width = window.width,
-                height = window.height,
-                margin = margin,
-                columnWidth = columnWidth,
-                rowHeight = rowHeight,
-                x = x,
-                y = y
-            )
+            mousePosition = convertMousePositionToGrid(x = x, y = y)
         }
-        columnWidth = (window.width - 2 * margin) / drawingObjective.columnsCount
-        rowHeight = (window.height - 2 * margin) / drawingObjective.rowsCount
-    }
-
-    private fun globalToSquarePosition(
-        width: Int,
-        height: Int,
-        margin: Float,
-        columnWidth: Float,
-        rowHeight: Float,
-        x: Double,
-        y: Double
-    ): SquarePosition? {
-        if (x < margin || y < margin || x >= width - margin || y >= height - margin) {
-            return null
-        }
-
-        val squareX = ((x - margin) / columnWidth).toInt()
-        val squareY = ((y - margin) / rowHeight).toInt()
-
-        return SquarePosition(squareX, squareY)
     }
 
     override fun close() {
