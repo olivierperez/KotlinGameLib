@@ -12,6 +12,8 @@ import fr.o80.carres.model.DrawingObjective
 import fr.o80.carres.model.SquarePosition
 import fr.o80.carres.model.digits
 import fr.o80.gamelib.dsl.Draw
+import fr.o80.gamelib.model.Grid
+import fr.o80.gamelib.model.gridOf
 import interop.*
 import platform.opengl32.*
 
@@ -28,8 +30,10 @@ class DrawingScene(
     private var rowHeight: Float = 0f
 
     private var mousePosition: SquarePosition? = null
+    private var mousePositionInDrawing: SquarePosition? = null
 
     private lateinit var convertMousePositionToGrid: ConvertMousePositionToGrid
+    private lateinit var coloredCells: Grid<Boolean>
 
     private val drawingObjective = DrawingObjective(
         verticalNumbers = listOf(
@@ -63,11 +67,30 @@ class DrawingScene(
         this.convertMousePositionToGrid = ConvertMousePositionToGrid(
             window.width, window.height, margin, columnWidth, rowHeight
         )
+        this.coloredCells = gridOf(
+            drawingObjective.width,
+            drawingObjective.height
+        ) { _, _ -> false }
 
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
         mouseMovePipeline.onMove { x, y ->
             mousePosition = convertMousePositionToGrid(x = x, y = y)
+            mousePositionInDrawing = mousePosition?.minus(
+                Pair(
+                    drawingObjective.columnsCountInHorizontal,
+                    drawingObjective.rowsCountInVertical
+                )
+            )
         }
+        mouseButtonPipeline.onButton(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS) { _, _ ->
+            mousePositionInDrawing
+                ?.takeIf { it.x in 0 until drawingObjective.width && it.y in 0 until drawingObjective.height }
+                ?.let(::toggleColor)
+        }
+    }
+
+    private fun toggleColor(position: SquarePosition) {
+        coloredCells[position.x, position.y] = !(coloredCells[position.x, position.y] ?: false)
     }
 
     override fun close() {
@@ -92,6 +115,15 @@ class DrawingScene(
                         position = it
                     )
                 }
+
+            drawColorizedCells(
+                margin = margin,
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
+                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                rowsCountInVertical = drawingObjective.rowsCountInVertical,
+                coloredCells = coloredCells
+            )
 
             drawNumbersBackground(
                 width = window.width,
@@ -125,6 +157,30 @@ class DrawingScene(
                 rowsCountInVertical = drawingObjective.rowsCountInVertical,
             )
         }
+    }
+
+    private fun Draw.drawColorizedCells(
+        margin: Float,
+        columnWidth: Float,
+        rowHeight: Float,
+        columnsCountInHorizontal: Int,
+        rowsCountInVertical: Int,
+        coloredCells: Grid<Boolean>
+    ) {
+        coloredCells
+            .forEach { x, y, value ->
+                if (value != true) return@forEach
+
+                val globalX = columnsCountInHorizontal + x
+                val globalY = rowsCountInVertical + y
+                color(coloredCell)
+                quad(
+                    x1 = margin + columnWidth * globalX + gridWidth / 2,
+                    y1 = margin + rowHeight * globalY + gridWidth / 2,
+                    x2 = margin + columnWidth * (globalX + 1) - gridWidth / 2,
+                    y2 = margin + rowHeight * (globalY + 1) - gridWidth / 2,
+                )
+            }
     }
 
     private fun Draw.drawHover(
