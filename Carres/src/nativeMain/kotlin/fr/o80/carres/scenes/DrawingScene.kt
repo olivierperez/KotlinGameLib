@@ -27,7 +27,7 @@ class DrawingScene(
             listOf(4),
             listOf(1, 2),
             listOf(1, 3),
-            listOf(1, 1, 3),
+            listOf(1, 1, 1),
             listOf(2, 1),
             listOf(1, 3),
             listOf(3),
