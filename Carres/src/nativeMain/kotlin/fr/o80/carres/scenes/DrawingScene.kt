@@ -9,18 +9,25 @@ import fr.o80.gamelib.loop.Window
 import fr.o80.gamelib.service.Services
 import fr.o80.carres.CarresSceneManager
 import fr.o80.carres.model.DrawingObjective
+import fr.o80.carres.model.SquarePosition
 import fr.o80.carres.model.digits
 import fr.o80.gamelib.dsl.Draw
 import interop.*
 import platform.opengl32.*
 
 private const val margin: Float = 20f
+private const val gridWidth: Float = 3f
 
 class DrawingScene(
     private val sceneManager: CarresSceneManager
 ) : Scene {
 
     private lateinit var window: Window
+
+    private var columnWidth: Float = 0f
+    private var rowHeight: Float = 0f
+
+    private var mousePosition: SquarePosition? = null
 
     private val drawingObjective = DrawingObjective(
         verticalNumbers = listOf(
@@ -50,6 +57,38 @@ class DrawingScene(
     ) {
         this.window = window
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
+        mouseMovePipeline.onMove { x, y ->
+            mousePosition = globalToSquarePosition(
+                width = window.width,
+                height = window.height,
+                margin = margin,
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
+                x = x,
+                y = y
+            )
+        }
+        columnWidth = (window.width - 2 * margin) / drawingObjective.columnsCount
+        rowHeight = (window.height - 2 * margin) / drawingObjective.rowsCount
+    }
+
+    private fun globalToSquarePosition(
+        width: Int,
+        height: Int,
+        margin: Float,
+        columnWidth: Float,
+        rowHeight: Float,
+        x: Double,
+        y: Double
+    ): SquarePosition? {
+        if (x < margin || y < margin || x >= width - margin || y >= height - margin) {
+            return null
+        }
+
+        val squareX = ((x - margin) / columnWidth).toInt()
+        val squareY = ((y - margin) / rowHeight).toInt()
+
+        return SquarePosition(squareX, squareY)
     }
 
     override fun close() {
@@ -61,8 +100,19 @@ class DrawingScene(
     override suspend fun render() {
         draw {
             clear(background)
-            val columnWidth = (window.width - 2 * margin) / drawingObjective.columnsCount
-            val rowHeight = (window.height - 2 * margin) / drawingObjective.rowsCount
+
+            mousePosition
+                ?.takeIf {
+                    it.x >= drawingObjective.columnsCountInHorizontal && it.y >= drawingObjective.rowsCountInVertical
+                }
+                ?.let {
+                    drawHover(
+                        margin = margin,
+                        columnWidth = columnWidth,
+                        rowHeight = rowHeight,
+                        position = it
+                    )
+                }
 
             drawNumbersBackground(
                 width = window.width,
@@ -96,6 +146,21 @@ class DrawingScene(
                 rowsCountInVertical = drawingObjective.rowsCountInVertical,
             )
         }
+    }
+
+    private fun Draw.drawHover(
+        margin: Float,
+        columnWidth: Float,
+        rowHeight: Float,
+        position: SquarePosition
+    ) {
+        color(hoverBackground)
+        quad(
+            x1 = margin + columnWidth * position.x + gridWidth / 2,
+            y1 = margin + rowHeight * position.y + gridWidth / 2,
+            x2 = margin + columnWidth * (position.x + 1) - gridWidth / 2,
+            y2 = margin + rowHeight * (position.y + 1) - gridWidth / 2,
+        )
     }
 
     private fun Draw.drawNumbersBackground(
@@ -185,7 +250,7 @@ class DrawingScene(
         columnsCountInHorizontal: Int,
         rowsCountInVertical: Int
     ) {
-        lineWidth(3f)
+        lineWidth(gridWidth)
         color(gridColor)
 
         val horizontalNumbersWidth = columnsCountInHorizontal * columnWidth
