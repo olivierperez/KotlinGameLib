@@ -106,6 +106,16 @@ class Draw {
     }
 
     @Drawer
+    fun scale(x: Float, y: Float, z: Float) {
+        glScalef(x, y, z)
+    }
+
+    @Drawer
+    fun scale(x: Double, y: Double, z: Double) {
+        glScaled(x, y, z)
+    }
+
+    @Drawer
     fun rotate(angle: Float, x: Float, y: Float, z: Float) {
         glRotatef(angle, x, y, z)
     }

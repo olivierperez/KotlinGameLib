@@ -1,21 +1,20 @@
 package fr.o80.carres.scenes
 
+import fr.o80.carres.CarresSceneManager
+import fr.o80.carres.model.DrawingObjective
+import fr.o80.carres.model.SquarePosition
+import fr.o80.carres.model.digits
 import fr.o80.gamelib.Scene
+import fr.o80.gamelib.dsl.Draw
 import fr.o80.gamelib.dsl.draw
 import fr.o80.gamelib.loop.KeyPipeline
 import fr.o80.gamelib.loop.MouseButtonPipeline
 import fr.o80.gamelib.loop.MouseMovePipeline
 import fr.o80.gamelib.loop.Window
-import fr.o80.gamelib.service.Services
-import fr.o80.carres.CarresSceneManager
-import fr.o80.carres.model.DrawingObjective
-import fr.o80.carres.model.SquarePosition
-import fr.o80.carres.model.digits
-import fr.o80.gamelib.dsl.Draw
 import fr.o80.gamelib.model.Grid
 import fr.o80.gamelib.model.gridOf
+import fr.o80.gamelib.service.Services
 import interop.*
-import platform.opengl32.*
 
 private const val margin: Float = 20f
 private const val paddingOfColoredCell = .15f
@@ -176,8 +175,8 @@ class DrawingScene(
                 z = 0f
             )
             coloredCells
-                .forEach { x, y, value ->
-                    if (value != true) return@forEach
+                .forEachNotNull { x, y, value ->
+                    if (!value) return@forEachNotNull
 
                     pushed {
                         translate(
@@ -185,7 +184,7 @@ class DrawingScene(
                             y = rowHeight * y + gridWidth / 2,
                             z = 0f
                         )
-                        glScalef(1 - paddingOfColoredCell, 1 - paddingOfColoredCell, 0f)
+                        scale(1 - paddingOfColoredCell, 1 - paddingOfColoredCell, 0f)
                         translate(
                             x = (paddingOfColoredCell / 2) * columnWidth,
                             y = (paddingOfColoredCell / 2) * rowHeight,
@@ -284,8 +283,8 @@ class DrawingScene(
             color(numbersColor)
             translate(left, top, 0f)
             translate(.2f * width, .2f * height, 0f)
-            glScalef(.6f, .6f, 0f)
-            glScalef(width, height, 0f)
+            scale(.6f, .6f, 0f)
+            scale(width, height, 0f)
 
             digits[value]!!.forEach { segment ->
                 line(segment.x1, segment.y1, segment.x2, segment.y2)

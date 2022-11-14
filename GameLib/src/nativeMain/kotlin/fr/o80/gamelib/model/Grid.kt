@@ -20,6 +20,14 @@ class Grid<T>(
             }
         }
     }
+
+    fun forEachNotNull(block: (x: Int, y: Int, value: T) -> Unit) {
+        forEach { x, y, value ->
+            value?.let {
+                block(x, y, it)
+            }
+        }
+    }
 }
 
 inline fun <reified T> gridOf(width: Int, height: Int, initialValue: (x: Int, y: Int) -> T): Grid<T> {
