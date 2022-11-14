@@ -10,7 +10,7 @@ internal class MouseButtonPipelineImpl : MouseButtonPipeline {
     private var mouseX: Double = -1.0
     private var mouseY: Double = -1.0
 
-    fun invoke(window: CPointer<GLFWwindow>?, button: Int, action: Int, mods: Int) {
+    operator fun invoke(window: CPointer<GLFWwindow>?, button: Int, action: Int, mods: Int) {
         callbacks.filter { (k, a, _) -> k == button && a == action }
             .forEach { it.third(mouseX, mouseY) }
     }

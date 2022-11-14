@@ -8,6 +8,7 @@ import fr.o80.gamelib.loop.MouseMovePipeline
 import fr.o80.gamelib.loop.Window
 import fr.o80.gamelib.service.Services
 import fr.o80.carres.CarresSceneManager
+import fr.o80.gamelib.loop.ScrollPipeline
 import interop.*
 import platform.opengl32.*
 
@@ -22,7 +23,8 @@ class MainScene(
         services: Services,
         keyPipeline: KeyPipeline,
         mouseButtonPipeline: MouseButtonPipeline,
-        mouseMovePipeline: MouseMovePipeline
+        mouseMovePipeline: MouseMovePipeline,
+        scrollPipeline: ScrollPipeline
     ) {
         size = Pair(window.width, window.height)
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }

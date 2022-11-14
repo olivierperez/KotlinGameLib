@@ -22,6 +22,7 @@ import platform.opengl32.*
 private val keyPipeline = KeyPipelineImpl()
 private val mouseButtonPipeline = MouseButtonPipelineImpl()
 private val mouseMovePipeline = MouseMovePipelineImpl(mouseButtonPipeline)
+private val scrollPipeline = ScrollPipelineImpl()
 
 class GameLoop(
     private val game: Game,
@@ -96,12 +97,17 @@ class GameLoop(
         )
         glfwSetMouseButtonCallback(window.id,
             staticCFunction { window, button, action, mods ->
-                mouseButtonPipeline.invoke(window, button, action, mods)
+                mouseButtonPipeline(window, button, action, mods)
             }
         )
         glfwSetCursorPosCallback(window.id,
             staticCFunction { window, xpos, ypos ->
-                mouseMovePipeline.invoke(window, xpos, ypos)
+                mouseMovePipeline(window, xpos, ypos)
+            }
+        )
+        glfwSetScrollCallback(window.id,
+            staticCFunction { window, xOffset, yOffset ->
+                scrollPipeline(window, xOffset, yOffset)
             }
         )
 
@@ -140,10 +146,12 @@ class GameLoop(
                 glMatrixMode(mode)
                 glOrtho(0.0, width, height, 0.0, 0.0, 1.0)
             }
+
             Ortho.BOTTOM_CENTER -> {
                 glMatrixMode(mode)
                 glOrtho(-width / 2, width / 2, 0.0, height, 0.0, 1.0)
             }
+
             Ortho.CENTER -> {
                 glMatrixMode(mode)
                 glOrtho(-width / 2, width / 2, -height / 2, height / 2, 0.0, 1.0)
@@ -195,7 +203,7 @@ class GameLoop(
         keyPipeline.clear()
         mouseButtonPipeline.clear()
         mouseMovePipeline.clear()
-        scene.open(window, services, keyPipeline, mouseButtonPipeline, mouseMovePipeline)
+        scene.open(window, services, keyPipeline, mouseButtonPipeline, mouseMovePipeline, scrollPipeline)
         currentScene = scene
         oldScene?.close()
     }

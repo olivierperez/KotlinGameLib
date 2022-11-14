@@ -9,7 +9,7 @@ internal class MouseMovePipelineImpl(
 
     private val callbacks = mutableListOf<(Double, Double) -> Unit>()
 
-    fun invoke(window: CPointer<GLFWwindow>?, xpos: Double, ypos: Double) {
+    operator fun invoke(window: CPointer<GLFWwindow>?, xpos: Double, ypos: Double) {
         mouseButtonPipeline.onMouseMove(xpos, ypos)
         callbacks.forEach { it(xpos, ypos) }
     }

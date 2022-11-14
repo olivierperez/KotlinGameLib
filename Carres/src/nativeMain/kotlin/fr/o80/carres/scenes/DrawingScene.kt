@@ -10,15 +10,23 @@ import fr.o80.gamelib.dsl.draw
 import fr.o80.gamelib.loop.KeyPipeline
 import fr.o80.gamelib.loop.MouseButtonPipeline
 import fr.o80.gamelib.loop.MouseMovePipeline
+import fr.o80.gamelib.loop.ScrollPipeline
 import fr.o80.gamelib.loop.Window
 import fr.o80.gamelib.model.Grid
 import fr.o80.gamelib.model.gridOf
 import fr.o80.gamelib.service.Services
 import interop.*
 
-private const val margin: Float = 20f
-private const val paddingOfColoredCell = .15f
 private const val gridWidth: Float = 3f
+
+private const val margin: Float = 20f
+
+private const val numberWidth: Float = 3f
+private const val numberMargin = .3f
+
+private const val paddingOfColoredCell = .15f
+
+private const val zoomSpeed: Float = .1f
 
 class DrawingScene(
     private val sceneManager: CarresSceneManager
@@ -28,6 +36,7 @@ class DrawingScene(
 
     private var columnWidth: Float = 0f
     private var rowHeight: Float = 0f
+    private var zoom: Float = 1f
 
     private var mousePosition: SquarePosition? = null
     private var mousePositionInDrawing: SquarePosition? = null
@@ -59,7 +68,8 @@ class DrawingScene(
         services: Services,
         keyPipeline: KeyPipeline,
         mouseButtonPipeline: MouseButtonPipeline,
-        mouseMovePipeline: MouseMovePipeline
+        mouseMovePipeline: MouseMovePipeline,
+        scrollPipeline: ScrollPipeline
     ) {
         this.window = window
         this.columnWidth = (window.width - 2 * margin) / drawingObjective.columnsCount
@@ -74,7 +84,7 @@ class DrawingScene(
 
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
         mouseMovePipeline.onMove { x, y ->
-            mousePosition = convertMousePositionToGrid(x = x, y = y)
+            mousePosition = convertMousePositionToGrid.invoke(x = x, y = y, zoom = zoom)
             mousePositionInDrawing = mousePosition?.minus(
                 Pair(
                     drawingObjective.columnsCountInHorizontal,
@@ -86,6 +96,9 @@ class DrawingScene(
             mousePositionInDrawing
                 ?.takeIf { it.x in 0 until drawingObjective.width && it.y in 0 until drawingObjective.height }
                 ?.let(::toggleColor)
+        }
+        scrollPipeline.onScroll { _, yOffset ->
+            zoom += zoomSpeed * yOffset.toFloat()
         }
     }
 
@@ -101,61 +114,69 @@ class DrawingScene(
 
     override suspend fun render() {
         draw {
-            clear(background)
+            pushed {
+                translate(
+                    x = window.width / 2 * (1 - zoom),
+                    y = window.height / 2 * (1 - zoom),
+                    z = 0f
+                )
+                scale(zoom, zoom, 0f)
+                clear(background)
 
-            mousePosition
-                ?.takeIf {
-                    it.x >= drawingObjective.columnsCountInHorizontal && it.y >= drawingObjective.rowsCountInVertical
-                }
-                ?.let {
-                    drawHover(
-                        margin = margin,
-                        columnWidth = columnWidth,
-                        rowHeight = rowHeight,
-                        position = it
-                    )
-                }
+                mousePosition
+                    ?.takeIf {
+                        it.x >= drawingObjective.columnsCountInHorizontal && it.y >= drawingObjective.rowsCountInVertical
+                    }
+                    ?.let {
+                        drawHover(
+                            margin = margin,
+                            columnWidth = columnWidth,
+                            rowHeight = rowHeight,
+                            position = it
+                        )
+                    }
 
-            drawColorizedCells(
-                margin = margin,
-                columnWidth = columnWidth,
-                rowHeight = rowHeight,
-                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
-                rowsCountInVertical = drawingObjective.rowsCountInVertical,
-                coloredCells = coloredCells
-            )
+                drawColorizedCells(
+                    margin = margin,
+                    columnWidth = columnWidth,
+                    rowHeight = rowHeight,
+                    columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                    rowsCountInVertical = drawingObjective.rowsCountInVertical,
+                    coloredCells = coloredCells
+                )
 
-            drawNumbersBackground(
-                width = window.width,
-                height = window.height,
-                margin = margin,
-                columnWidth = columnWidth,
-                rowHeight = rowHeight,
-                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
-                rowsCountInVertical = drawingObjective.rowsCountInVertical,
-            )
+                drawNumbersBackground(
+                    width = window.width,
+                    height = window.height,
+                    margin = margin,
+                    columnWidth = columnWidth,
+                    rowHeight = rowHeight,
+                    columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                    rowsCountInVertical = drawingObjective.rowsCountInVertical,
+                )
 
-            drawGrid(
-                width = window.width,
-                height = window.height,
-                margin = margin,
-                columnWidth = columnWidth,
-                rowHeight = rowHeight,
-                columnsCounts = drawingObjective.columnsCount,
-                rowsCounts = drawingObjective.rowsCount,
-                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
-                rowsCountInVertical = drawingObjective.rowsCountInVertical,
-            )
+                drawGrid(
+                    width = window.width,
+                    height = window.height,
+                    margin = margin,
+                    columnWidth = columnWidth,
+                    rowHeight = rowHeight,
+                    columnsCounts = drawingObjective.columnsCount,
+                    rowsCounts = drawingObjective.rowsCount,
+                    columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                    rowsCountInVertical = drawingObjective.rowsCountInVertical,
+                )
 
-            drawNumbers(
-                margin = margin,
-                columnWidth = columnWidth,
-                rowHeight = rowHeight,
-                verticalNumbers = drawingObjective.verticalNumbers,
-                horizontalNumbers = drawingObjective.horizontalNumbers,
-                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
-                rowsCountInVertical = drawingObjective.rowsCountInVertical,
-            )
+                drawNumbers(
+                    margin = margin,
+                    columnWidth = columnWidth,
+                    rowHeight = rowHeight,
+                    verticalNumbers = drawingObjective.verticalNumbers,
+                    horizontalNumbers = drawingObjective.horizontalNumbers,
+                    columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                    rowsCountInVertical = drawingObjective.rowsCountInVertical,
+                )
+            }
         }
     }
 
@@ -280,10 +301,11 @@ class DrawingScene(
 
     private fun Draw.drawNumber(top: Float, left: Float, width: Float, height: Float, value: Int) {
         pushed {
+            lineWidth(numberWidth * zoom)
             color(numbersColor)
             translate(left, top, 0f)
-            translate(.2f * width, .2f * height, 0f)
-            scale(.6f, .6f, 0f)
+            translate(numberMargin * width, numberMargin * height, 0f)
+            scale(1f - 2 * numberMargin, 1f - 2 * numberMargin, 0f)
             scale(width, height, 0f)
 
             digits[value]!!.forEach { segment ->
@@ -303,7 +325,7 @@ class DrawingScene(
         columnsCountInHorizontal: Int,
         rowsCountInVertical: Int
     ) {
-        lineWidth(gridWidth)
+        lineWidth(gridWidth * zoom)
         color(gridColor)
 
         val horizontalNumbersWidth = columnsCountInHorizontal * columnWidth
