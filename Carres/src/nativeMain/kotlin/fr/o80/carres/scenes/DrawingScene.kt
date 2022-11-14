@@ -18,6 +18,7 @@ import interop.*
 import platform.opengl32.*
 
 private const val margin: Float = 20f
+private const val paddingOfColoredCell = .15f
 private const val gridWidth: Float = 3f
 
 class DrawingScene(
@@ -167,20 +168,38 @@ class DrawingScene(
         rowsCountInVertical: Int,
         coloredCells: Grid<Boolean>
     ) {
-        coloredCells
-            .forEach { x, y, value ->
-                if (value != true) return@forEach
+        color(coloredCell)
+        pushed {
+            translate(
+                x = margin + columnsCountInHorizontal * columnWidth,
+                y = margin + rowsCountInVertical * rowHeight,
+                z = 0f
+            )
+            coloredCells
+                .forEach { x, y, value ->
+                    if (value != true) return@forEach
 
-                val globalX = columnsCountInHorizontal + x
-                val globalY = rowsCountInVertical + y
-                color(coloredCell)
-                quad(
-                    x1 = margin + columnWidth * globalX + gridWidth / 2,
-                    y1 = margin + rowHeight * globalY + gridWidth / 2,
-                    x2 = margin + columnWidth * (globalX + 1) - gridWidth / 2,
-                    y2 = margin + rowHeight * (globalY + 1) - gridWidth / 2,
-                )
-            }
+                    pushed {
+                        translate(
+                            x = columnWidth * x + gridWidth / 2,
+                            y = rowHeight * y + gridWidth / 2,
+                            z = 0f
+                        )
+                        glScalef(1 - paddingOfColoredCell, 1 - paddingOfColoredCell, 0f)
+                        translate(
+                            x = (paddingOfColoredCell / 2) * columnWidth,
+                            y = (paddingOfColoredCell / 2) * rowHeight,
+                            z = 0f
+                        )
+                        quad(
+                            x1 = 0f,
+                            y1 = 0f,
+                            x2 = columnWidth - gridWidth / 2,
+                            y2 = rowHeight - gridWidth / 2,
+                        )
+                    }
+                }
+        }
     }
 
     private fun Draw.drawHover(
