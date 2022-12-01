@@ -16,6 +16,7 @@ import fr.o80.gamelib.model.Grid
 import fr.o80.gamelib.model.gridOf
 import fr.o80.gamelib.service.Services
 import interop.*
+import kotlin.math.pow
 
 private const val gridWidth: Float = 3f
 
@@ -26,7 +27,7 @@ private const val numberMargin = .3f
 
 private const val paddingOfColoredCell = .15f
 
-private const val zoomSpeed: Float = .1f
+private const val zoomSpeed: Float = .9f
 
 class DrawingScene(
     private val sceneManager: CarresSceneManager
@@ -98,7 +99,7 @@ class DrawingScene(
                 ?.let(::toggleColor)
         }
         scrollPipeline.onScroll { _, yOffset ->
-            zoom += zoomSpeed * yOffset.toFloat()
+            zoom *= zoomSpeed.pow(-yOffset.toFloat())
         }
     }
 
