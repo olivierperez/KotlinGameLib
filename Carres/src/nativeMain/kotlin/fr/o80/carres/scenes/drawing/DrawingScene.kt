@@ -4,7 +4,6 @@ import fr.o80.carres.CarresSceneManager
 import fr.o80.carres.model.DrawingObjective
 import fr.o80.carres.model.SquarePosition
 import fr.o80.carres.scenes.background
-import fr.o80.carres.scenes.coloredCell
 import fr.o80.carres.scenes.gridColor
 import fr.o80.carres.scenes.hoverBackground
 import fr.o80.carres.scenes.numbersBackground
@@ -17,19 +16,8 @@ import fr.o80.gamelib.loop.MouseButtonPipeline
 import fr.o80.gamelib.loop.MouseMovePipeline
 import fr.o80.gamelib.loop.ScrollPipeline
 import fr.o80.gamelib.loop.Window
-import fr.o80.gamelib.model.Grid
-import fr.o80.gamelib.model.gridOf
 import fr.o80.gamelib.service.Services
 import interop.*
-
-private const val gridWidth: Float = 3f
-
-private const val margin: Float = 20f
-
-private const val numberWidth: Float = 3f
-private const val numberMargin = .3f
-
-private const val paddingOfColoredCell = .15f
 
 class DrawingScene(
     private val sceneManager: CarresSceneManager
@@ -40,8 +28,7 @@ class DrawingScene(
     private var columnWidth: Float = 0f
     private var rowHeight: Float = 0f
 
-    private lateinit var convertMousePositionToGrid: ConvertMousePositionToGrid
-    private lateinit var coloredCells: Grid<Boolean>
+    private val drawingSettings: DrawingSettings = DrawingSettings()
 
     private val drawingObjective = DrawingObjective(
         verticalNumbers = listOf(
@@ -64,6 +51,12 @@ class DrawingScene(
 
     private lateinit var zoomManager: ZoomManager
     private lateinit var mousePositionManager: MousePositionManager
+    private lateinit var currentDrawing: CurrentDrawing
+
+    private val gridWidth = drawingSettings.gridWidth
+    private val margin = drawingSettings.margin
+    private val numberMargin = drawingSettings.numberMargin
+    private val numberWidth = drawingSettings.numberWidth
 
     override fun open(
         window: Window,
@@ -76,33 +69,27 @@ class DrawingScene(
         this.window = window
         this.columnWidth = (window.width - 2 * margin) / drawingObjective.columnsCount
         this.rowHeight = (window.height - 2 * margin) / drawingObjective.rowsCount
-        this.coloredCells = gridOf(
-            drawingObjective.width,
-            drawingObjective.height
-        ) { _, _ -> false }
-        this.zoomManager = ZoomManager(window, scrollPipeline, zoomSpeed = .9f)
-        this.convertMousePositionToGrid = ConvertMousePositionToGrid(
-            zoomManager, window, margin, columnWidth, rowHeight
+
+        this.zoomManager = ZoomManager(window, scrollPipeline, drawingSettings.zoomSpeed)
+        val convertMousePositionToGrid = ConvertMousePositionToGrid(
+            zoomManager,
+            window,
+            margin,
+            columnWidth,
+            rowHeight
         )
-        this.mousePositionManager = MousePositionManager(mouseMovePipeline, convertMousePositionToGrid)
+        this.mousePositionManager = MousePositionManager(
+            convertMousePositionToGrid,
+            mouseMovePipeline
+        )
+        this.currentDrawing = CurrentDrawing(
+            mousePositionManager,
+            drawingObjective,
+            drawingSettings,
+            mouseButtonPipeline
+        )
 
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
-
-        mouseButtonPipeline.onButton(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS) { _, _ ->
-            mousePositionManager.inGrid
-                ?.let {
-                    it - Pair(
-                        drawingObjective.columnsCountInHorizontal,
-                        drawingObjective.rowsCountInVertical
-                    )
-                }
-                ?.takeIf { it.x in 0 until drawingObjective.width && it.y in 0 until drawingObjective.height }
-                ?.let(::toggleColor)
-        }
-    }
-
-    private fun toggleColor(position: SquarePosition) {
-        coloredCells[position.x, position.y] = !(coloredCells[position.x, position.y] ?: false)
     }
 
     override fun close() {
@@ -130,13 +117,12 @@ class DrawingScene(
                         )
                     }
 
-                drawColorizedCells(
+                currentDrawing.render(
                     margin = margin,
                     columnWidth = columnWidth,
                     rowHeight = rowHeight,
                     columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
                     rowsCountInVertical = drawingObjective.rowsCountInVertical,
-                    coloredCells = coloredCells
                 )
 
                 drawNumbersBackground(
@@ -171,48 +157,6 @@ class DrawingScene(
                     rowsCountInVertical = drawingObjective.rowsCountInVertical,
                 )
             }
-        }
-    }
-
-    private fun Draw.drawColorizedCells(
-        margin: Float,
-        columnWidth: Float,
-        rowHeight: Float,
-        columnsCountInHorizontal: Int,
-        rowsCountInVertical: Int,
-        coloredCells: Grid<Boolean>
-    ) {
-        color(coloredCell)
-        pushed {
-            translate(
-                x = margin + columnsCountInHorizontal * columnWidth,
-                y = margin + rowsCountInVertical * rowHeight,
-                z = 0f
-            )
-            coloredCells
-                .forEachNotNull { x, y, value ->
-                    if (!value) return@forEachNotNull
-
-                    pushed {
-                        translate(
-                            x = columnWidth * x + gridWidth / 2,
-                            y = rowHeight * y + gridWidth / 2,
-                            z = 0f
-                        )
-                        scale(1 - paddingOfColoredCell, 1 - paddingOfColoredCell, 0f)
-                        translate(
-                            x = (paddingOfColoredCell / 2) * columnWidth,
-                            y = (paddingOfColoredCell / 2) * rowHeight,
-                            z = 0f
-                        )
-                        quad(
-                            x1 = 0f,
-                            y1 = 0f,
-                            x2 = columnWidth - gridWidth / 2,
-                            y2 = rowHeight - gridWidth / 2,
-                        )
-                    }
-                }
         }
     }
 

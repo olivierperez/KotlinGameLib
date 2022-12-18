@@ -5,8 +5,8 @@ import fr.o80.gamelib.PositionD
 import fr.o80.gamelib.loop.MouseMovePipeline
 
 class MousePositionManager(
-    mouseMovePipeline: MouseMovePipeline,
     private val convertMousePositionToGrid: ConvertMousePositionToGrid,
+    mouseMovePipeline: MouseMovePipeline,
 ) {
 
     private var mousePosition: PositionD? = null
