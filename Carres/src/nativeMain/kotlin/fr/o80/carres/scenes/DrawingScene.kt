@@ -4,6 +4,7 @@ import fr.o80.carres.CarresSceneManager
 import fr.o80.carres.model.DrawingObjective
 import fr.o80.carres.model.SquarePosition
 import fr.o80.carres.model.digits
+import fr.o80.carres.scenes.drawing.ZoomManager
 import fr.o80.gamelib.Scene
 import fr.o80.gamelib.dsl.Draw
 import fr.o80.gamelib.dsl.draw
@@ -16,7 +17,6 @@ import fr.o80.gamelib.model.Grid
 import fr.o80.gamelib.model.gridOf
 import fr.o80.gamelib.service.Services
 import interop.*
-import kotlin.math.pow
 
 private const val gridWidth: Float = 3f
 
@@ -27,8 +27,6 @@ private const val numberMargin = .3f
 
 private const val paddingOfColoredCell = .15f
 
-private const val zoomSpeed: Float = .9f
-
 class DrawingScene(
     private val sceneManager: CarresSceneManager
 ) : Scene {
@@ -37,7 +35,6 @@ class DrawingScene(
 
     private var columnWidth: Float = 0f
     private var rowHeight: Float = 0f
-    private var zoom: Float = 1f
 
     private var mousePosition: SquarePosition? = null
     private var mousePositionInDrawing: SquarePosition? = null
@@ -64,6 +61,8 @@ class DrawingScene(
         )
     )
 
+    private lateinit var zoomManager: ZoomManager
+
     override fun open(
         window: Window,
         services: Services,
@@ -75,17 +74,18 @@ class DrawingScene(
         this.window = window
         this.columnWidth = (window.width - 2 * margin) / drawingObjective.columnsCount
         this.rowHeight = (window.height - 2 * margin) / drawingObjective.rowsCount
-        this.convertMousePositionToGrid = ConvertMousePositionToGrid(
-            window.width, window.height, margin, columnWidth, rowHeight
-        )
         this.coloredCells = gridOf(
             drawingObjective.width,
             drawingObjective.height
         ) { _, _ -> false }
+        this.zoomManager = ZoomManager(window, scrollPipeline, zoomSpeed = .9f)
+        this.convertMousePositionToGrid = ConvertMousePositionToGrid(
+            zoomManager, window, margin, columnWidth, rowHeight
+        )
 
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
         mouseMovePipeline.onMove { x, y ->
-            mousePosition = convertMousePositionToGrid.invoke(x = x, y = y, zoom = zoom)
+            mousePosition = convertMousePositionToGrid(x, y)
             mousePositionInDrawing = mousePosition?.minus(
                 Pair(
                     drawingObjective.columnsCountInHorizontal,
@@ -97,9 +97,6 @@ class DrawingScene(
             mousePositionInDrawing
                 ?.takeIf { it.x in 0 until drawingObjective.width && it.y in 0 until drawingObjective.height }
                 ?.let(::toggleColor)
-        }
-        scrollPipeline.onScroll { _, yOffset ->
-            zoom *= zoomSpeed.pow(-yOffset.toFloat())
         }
     }
 
@@ -115,13 +112,7 @@ class DrawingScene(
 
     override suspend fun render() {
         draw {
-            pushed {
-                translate(
-                    x = window.width / 2 * (1 - zoom),
-                    y = window.height / 2 * (1 - zoom),
-                    z = 0f
-                )
-                scale(zoom, zoom, 0f)
+            zoomManager.pushed {
                 clear(background)
 
                 mousePosition
@@ -302,7 +293,7 @@ class DrawingScene(
 
     private fun Draw.drawNumber(top: Float, left: Float, width: Float, height: Float, value: Int) {
         pushed {
-            lineWidth(numberWidth * zoom)
+            lineWidth(numberWidth * zoomManager.zoom)
             color(numbersColor)
             translate(left, top, 0f)
             translate(numberMargin * width, numberMargin * height, 0f)
@@ -326,7 +317,7 @@ class DrawingScene(
         columnsCountInHorizontal: Int,
         rowsCountInVertical: Int
     ) {
-        lineWidth(gridWidth * zoom)
+        lineWidth(gridWidth * zoomManager.zoom)
         color(gridColor)
 
         val horizontalNumbersWidth = columnsCountInHorizontal * columnWidth

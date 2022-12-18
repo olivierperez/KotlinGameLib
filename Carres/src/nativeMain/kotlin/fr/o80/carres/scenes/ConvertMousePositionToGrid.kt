@@ -1,18 +1,23 @@
 package fr.o80.carres.scenes
 
 import fr.o80.carres.model.SquarePosition
+import fr.o80.carres.scenes.drawing.ZoomManager
+import fr.o80.gamelib.loop.Window
 
 class ConvertMousePositionToGrid(
-    private val width: Int,
-    private val height: Int,
+    private val zoomManager: ZoomManager,
+    private val window: Window,
     private val margin: Float,
     private val columnWidth: Float,
     private val rowHeight: Float,
 ) {
+    private val width: Int get() = window.width
+    private val height: Int get() = window.height
+    private val zoom: Float get() = zoomManager.zoom
+
     operator fun invoke(
         x: Double,
-        y: Double,
-        zoom: Float
+        y: Double
     ): SquarePosition? {
         val outLeft = width / 2 - (width / 2 - margin) * zoom
         val outRight = width - outLeft
