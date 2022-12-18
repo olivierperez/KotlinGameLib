@@ -1,10 +1,14 @@
-package fr.o80.carres.scenes
+package fr.o80.carres.scenes.drawing
 
 import fr.o80.carres.CarresSceneManager
 import fr.o80.carres.model.DrawingObjective
 import fr.o80.carres.model.SquarePosition
-import fr.o80.carres.model.digits
-import fr.o80.carres.scenes.drawing.ZoomManager
+import fr.o80.carres.scenes.background
+import fr.o80.carres.scenes.coloredCell
+import fr.o80.carres.scenes.gridColor
+import fr.o80.carres.scenes.hoverBackground
+import fr.o80.carres.scenes.numbersBackground
+import fr.o80.carres.scenes.numbersColor
 import fr.o80.gamelib.Scene
 import fr.o80.gamelib.dsl.Draw
 import fr.o80.gamelib.dsl.draw
@@ -36,9 +40,6 @@ class DrawingScene(
     private var columnWidth: Float = 0f
     private var rowHeight: Float = 0f
 
-    private var mousePosition: SquarePosition? = null
-    private var mousePositionInDrawing: SquarePosition? = null
-
     private lateinit var convertMousePositionToGrid: ConvertMousePositionToGrid
     private lateinit var coloredCells: Grid<Boolean>
 
@@ -62,6 +63,7 @@ class DrawingScene(
     )
 
     private lateinit var zoomManager: ZoomManager
+    private lateinit var mousePositionManager: MousePositionManager
 
     override fun open(
         window: Window,
@@ -82,19 +84,18 @@ class DrawingScene(
         this.convertMousePositionToGrid = ConvertMousePositionToGrid(
             zoomManager, window, margin, columnWidth, rowHeight
         )
+        this.mousePositionManager = MousePositionManager(mouseMovePipeline, convertMousePositionToGrid)
 
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
-        mouseMovePipeline.onMove { x, y ->
-            mousePosition = convertMousePositionToGrid(x, y)
-            mousePositionInDrawing = mousePosition?.minus(
-                Pair(
-                    drawingObjective.columnsCountInHorizontal,
-                    drawingObjective.rowsCountInVertical
-                )
-            )
-        }
+
         mouseButtonPipeline.onButton(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS) { _, _ ->
-            mousePositionInDrawing
+            mousePositionManager.inGrid
+                ?.let {
+                    it - Pair(
+                        drawingObjective.columnsCountInHorizontal,
+                        drawingObjective.rowsCountInVertical
+                    )
+                }
                 ?.takeIf { it.x in 0 until drawingObjective.width && it.y in 0 until drawingObjective.height }
                 ?.let(::toggleColor)
         }
@@ -108,6 +109,7 @@ class DrawingScene(
     }
 
     override suspend fun update() {
+        mousePositionManager.update()
     }
 
     override suspend fun render() {
@@ -115,7 +117,7 @@ class DrawingScene(
             zoomManager.pushed {
                 clear(background)
 
-                mousePosition
+                mousePositionManager.inGrid
                     ?.takeIf {
                         it.x >= drawingObjective.columnsCountInHorizontal && it.y >= drawingObjective.rowsCountInVertical
                     }
@@ -300,7 +302,7 @@ class DrawingScene(
             scale(1f - 2 * numberMargin, 1f - 2 * numberMargin, 0f)
             scale(width, height, 0f)
 
-            digits[value]!!.forEach { segment ->
+            fr.o80.carres.model.digits[value]!!.forEach { segment ->
                 line(segment.x1, segment.y1, segment.x2, segment.y2)
             }
         }

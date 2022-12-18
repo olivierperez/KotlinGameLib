@@ -1,6 +1,6 @@
 package fr.o80.carres
 
-import fr.o80.carres.scenes.DrawingScene
+import fr.o80.carres.scenes.drawing.DrawingScene
 import fr.o80.gamelib.Scene
 import fr.o80.gamelib.SceneManager
 import fr.o80.gamelib.loop.GameLoop
