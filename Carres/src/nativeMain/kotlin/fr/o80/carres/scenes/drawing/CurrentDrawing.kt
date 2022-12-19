@@ -24,26 +24,40 @@ class CurrentDrawing(
     private val gridWidth = drawingSettings.gridWidth
     private val paddingOfColoredCell = drawingSettings.paddingOfColoredCell
 
+    private var pressedCell: SquarePosition? = null
+
     init {
         mouseButtonPipeline.onButton(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS) { _, _ ->
-            mousePositionManager.inGrid?.let(::onClick)
+            mousePositionManager.inGrid?.let(::onPress)
+        }
+        mouseButtonPipeline.onButton(GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE) { _, _ ->
+            mousePositionManager.inGrid?.let(::onRelease)
         }
     }
 
-    private fun onClick(squarePosition: SquarePosition) {
-        val cellClicked = squarePosition - Pair(objective.columnsCountInHorizontal, objective.rowsCountInVertical)
-        cellClicked
-            .takeIf(::isInDrawing)
-            ?.let(::toggleColor)
+    private fun onPress(squarePosition: SquarePosition) {
+        this.pressedCell = squarePosition - Pair(objective.columnsCountInHorizontal, objective.rowsCountInVertical)
+    }
+
+    private fun onRelease(releasedPosition: SquarePosition) {
+        val pressedCell = pressedCell ?: return
+        val releasedCell = releasedPosition - Pair(objective.columnsCountInHorizontal, objective.rowsCountInVertical)
+
+        if (releasedCell.x == pressedCell.x || releasedCell.y == pressedCell.y) {
+            val newColor = !(coloredCells[pressedCell.x, pressedCell.y] ?: false)
+            (pressedCell..releasedCell).filter(::isInDrawing).forEach { cellPosition ->
+                setColor(newColor, cellPosition)
+            }
+        }
+    }
+
+    private fun setColor(newColor: Boolean, cellPosition: SquarePosition) {
+        coloredCells[cellPosition.x, cellPosition.y] = newColor
     }
 
     private fun isInDrawing(squarePosition: SquarePosition): Boolean {
         return squarePosition.x in 0 until objective.width &&
                 squarePosition.y in 0 until objective.height
-    }
-
-    private fun toggleColor(position: SquarePosition) {
-        coloredCells[position.x, position.y] = !(coloredCells[position.x, position.y] ?: false)
     }
 
     fun render(
@@ -104,6 +118,19 @@ class CurrentDrawing(
                         )
                     }
                 }
+        }
+    }
+}
+
+private operator fun SquarePosition.rangeTo(other: SquarePosition): List<SquarePosition> {
+    return when {
+        this.y == other.y && this.x < other.x -> (this.x..other.x).map { SquarePosition(it, this.y) }
+        this.y == other.y && this.x >= other.x -> (other.x..this.x).map { SquarePosition(it, this.y) }
+        this.x == other.x && this.y < other.y -> (this.y .. other.y).map { SquarePosition(this.x, it) }
+        this.x == other.x && this.y >= other.y -> (other.y .. this.y).map { SquarePosition(this.x, it) }
+        else -> {
+            println("!! Inputs can't create a range $this / $other !!")
+            emptyList()
         }
     }
 }
