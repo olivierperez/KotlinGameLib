@@ -1,20 +1,25 @@
-package fr.o80.carres.scenes
+package fr.o80.carres.scenes.main
 
+import fr.o80.carres.CarresSceneManager
+import fr.o80.carres.image.BmpReader
+import fr.o80.carres.image.Texture
+import fr.o80.carres.image.TextureLoader
 import fr.o80.gamelib.Scene
 import fr.o80.gamelib.dsl.draw
 import fr.o80.gamelib.loop.KeyPipeline
 import fr.o80.gamelib.loop.MouseButtonPipeline
 import fr.o80.gamelib.loop.MouseMovePipeline
+import fr.o80.gamelib.loop.ScrollPipeline
 import fr.o80.gamelib.loop.Window
 import fr.o80.gamelib.service.Services
-import fr.o80.carres.CarresSceneManager
-import fr.o80.gamelib.loop.ScrollPipeline
 import interop.*
-import platform.opengl32.*
+import okio.Path.Companion.toPath
 
 class MainScene(
     private val sceneManager: CarresSceneManager
 ) : Scene {
+
+    private var texture: Texture? = null
 
     private lateinit var size: Pair<Int, Int>
 
@@ -30,6 +35,14 @@ class MainScene(
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
         keyPipeline.onKey(GLFW_KEY_SPACE, GLFW_PRESS) { sceneManager.openDrawing() }
         keyPipeline.onKey(GLFW_KEY_ENTER, GLFW_PRESS) { sceneManager.openDrawing() }
+
+        try {
+            val imagePath = "opz.bmp".toPath()
+            val image = BmpReader().read(imagePath)
+            texture = TextureLoader().load(image)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun close() {
@@ -41,9 +54,14 @@ class MainScene(
     override suspend fun render() {
         draw {
             clear(0.3f)
-            glPointSize(20f)
-            color(1f, 0f, 0f)
-            point(size.first / 2.0, size.second / 2.0, .0)
+
+            texture?.let {
+                pushed {
+                    translate(size.first / 2f - it.width / 2f, size.second / 2f - it.height / 2f, 0f)
+                    scale(2f, 2f, 0f)
+                    it.render()
+                }
+            }
         }
     }
 }

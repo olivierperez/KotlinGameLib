@@ -199,6 +199,8 @@ data class Vertex3f(val x: Float, val y: Float, val z: Float) {
 
 data class Vertex3d(val x: Double, val y: Double, val z: Double)
 
+data class Vertex3i(val x: Int, val y: Int, val z: Int)
+
 // Vertex 2
 
 data class Vertex2f(val x: Float, val y: Float) {

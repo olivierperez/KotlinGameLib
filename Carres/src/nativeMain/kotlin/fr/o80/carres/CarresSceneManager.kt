@@ -4,7 +4,7 @@ import fr.o80.carres.scenes.drawing.DrawingScene
 import fr.o80.gamelib.Scene
 import fr.o80.gamelib.SceneManager
 import fr.o80.gamelib.loop.GameLoop
-import fr.o80.carres.scenes.MainScene
+import fr.o80.carres.scenes.main.MainScene
 
 class CarresSceneManager(
     private val gameLoop: GameLoop
