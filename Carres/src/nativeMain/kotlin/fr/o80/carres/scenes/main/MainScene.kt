@@ -37,7 +37,7 @@ class MainScene(
         keyPipeline.onKey(GLFW_KEY_ENTER, GLFW_PRESS) { sceneManager.openDrawing() }
 
         try {
-            val imagePath = "opz.bmp".toPath()
+            val imagePath = "images/logo.bmp".toPath()
             val image = BmpReader().read(imagePath)
             texture = TextureLoader().load(image)
         } catch (e: Exception) {
@@ -53,12 +53,11 @@ class MainScene(
 
     override suspend fun render() {
         draw {
-            clear(0.3f)
+            clear(.098f)
 
             texture?.let {
                 pushed {
                     translate(size.first / 2f - it.width / 2f, size.second / 2f - it.height / 2f, 0f)
-                    scale(2f, 2f, 0f)
                     it.render()
                 }
             }

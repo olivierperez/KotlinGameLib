@@ -16,16 +16,16 @@ class BmpReader {
             readByteArray(4) // Header size
             readByteArray(4) // Windows = 0x28
 
-            val width = readByteArray(4).getLittleEndian()
-            val height = readByteArray(4).getLittleEndian()
+            val width = readByteArray(4).getULittleEndian()
+            val height = readByteArray(4).getULittleEndian()
             val colors = Array(width * height) { Vertex3i(0xFF, 0xFF, 0xFF) }
 
             readByteArray(2) // Plan = 0x01
 
-            val colorBytes = readByteArray(2).debug("color bytes").getLittleEndian()
+            val colorBytes = readByteArray(2).getULittleEndian()
             check(colorBytes == 24) { "Only 24 bits color is implemented" }
 
-            val compression = readByteArray(4).getLittleEndian()
+            val compression = readByteArray(4).getULittleEndian()
             check(compression == 0) { "No compression allowed" }
 
             readByteArray(4) // image data size
@@ -36,13 +36,14 @@ class BmpReader {
             readByteArray(4) // Colors per palette
             readByteArray(4) // Primary colors per palette
 
+            val skipAtEOL = (4 - (width * 3)) % 4L
             repeat(height) { h ->
                 val heightIndex = height - h - 1
                 repeat(width) { widthIndex ->
                     val color = readByteArray(3).getColor()
                     colors[widthIndex + heightIndex * width] = color
                 }
-                readByteArray(4 - (width * 3) % 4L)
+                readByteArray(skipAtEOL)
             }
 
             Image(width, height, colors)
@@ -57,6 +58,10 @@ private fun ByteArray.getColor(): Vertex3i {
     val blue = getUByteAt(0).toInt()
 
     return Vertex3i(red, green, blue)
+}
+
+private fun ByteArray.getULittleEndian(): Int {
+    return foldRight(0) { byte, acc -> acc * 256 + byte.toUByte().toInt() }
 }
 
 private fun ByteArray.getLittleEndian(): Int {
