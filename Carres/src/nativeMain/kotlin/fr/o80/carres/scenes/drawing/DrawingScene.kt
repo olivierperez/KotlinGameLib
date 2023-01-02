@@ -8,6 +8,7 @@ import fr.o80.carres.scenes.gridColor
 import fr.o80.carres.scenes.hoverBackground
 import fr.o80.carres.scenes.numbersBackground
 import fr.o80.carres.scenes.numbersColor
+import fr.o80.carres.tools.ToolManager
 import fr.o80.gamelib.Scene
 import fr.o80.gamelib.dsl.Draw
 import fr.o80.gamelib.dsl.draw
@@ -52,6 +53,7 @@ class DrawingScene(
     private lateinit var zoomManager: ZoomManager
     private lateinit var mousePositionManager: MousePositionManager
     private lateinit var currentDrawing: CurrentDrawing
+    private lateinit var toolManager: ToolManager
 
     private val gridWidth = drawingSettings.gridWidth
     private val margin = drawingSettings.margin
@@ -83,10 +85,17 @@ class DrawingScene(
             mouseMovePipeline
         )
         this.currentDrawing = CurrentDrawing(
+            drawingObjective,
+            drawingSettings
+        )
+        this.toolManager = ToolManager(
             mousePositionManager,
             drawingObjective,
             drawingSettings,
-            mouseButtonPipeline
+            mouseButtonPipeline,
+            mouseMovePipeline,
+            setColor = currentDrawing::setColor,
+            getColor = currentDrawing::getColor
         )
 
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
@@ -104,7 +113,7 @@ class DrawingScene(
             zoomManager.pushed {
                 clear(background)
 
-                mousePositionManager.inGrid
+                mousePositionManager.positionInGrid
                     ?.takeIf {
                         it.x >= drawingObjective.columnsCountInHorizontal && it.y >= drawingObjective.rowsCountInVertical
                     }
@@ -118,11 +127,8 @@ class DrawingScene(
                     }
 
                 currentDrawing.render(
-                    margin = margin,
                     columnWidth = columnWidth,
                     rowHeight = rowHeight,
-                    columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
-                    rowsCountInVertical = drawingObjective.rowsCountInVertical,
                 )
 
                 drawNumbersBackground(
@@ -155,6 +161,11 @@ class DrawingScene(
                     horizontalNumbers = drawingObjective.horizontalNumbers,
                     columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
                     rowsCountInVertical = drawingObjective.rowsCountInVertical,
+                )
+
+                toolManager.render(
+                    columnWidth = columnWidth,
+                    rowHeight = rowHeight,
                 )
             }
         }

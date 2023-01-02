@@ -11,7 +11,7 @@ class MousePositionManager(
 
     private var mousePosition: PositionD? = null
 
-    var inGrid: SquarePosition? = null
+    var positionInGrid: SquarePosition? = null
         private set
 
     init {
@@ -21,6 +21,6 @@ class MousePositionManager(
     }
 
     fun update() {
-        inGrid = mousePosition?.let { convertMousePositionToGrid(it) }
+        positionInGrid = mousePosition?.let { convertMousePositionToGrid(it) }
     }
 }
