@@ -36,7 +36,7 @@ kotlin {
             languageSettings.optIn("okio.ExperimentalFileSystem")
         }
         val nativeMain by getting {
-            val okioVersion = "3.0.0-alpha.10"
+            val okioVersion = "3.0.0"
             dependencies {
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
                 api("com.squareup.okio:okio:$okioVersion")
