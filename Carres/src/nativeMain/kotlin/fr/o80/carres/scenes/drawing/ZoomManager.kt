@@ -1,8 +1,8 @@
 package fr.o80.carres.scenes.drawing
 
-import fr.o80.gamelib.dsl.draw
 import fr.o80.gamelib.loop.ScrollPipeline
 import fr.o80.gamelib.loop.Window
+import platform.opengl32.*
 import kotlin.math.pow
 
 class ZoomManager(
@@ -10,8 +10,7 @@ class ZoomManager(
     scrollPipeline: ScrollPipeline,
     private val zoomSpeed: Float
 ) {
-    var zoom: Float = 1f
-        private set
+    private var zoom: Float = 1f
 
     init {
         scrollPipeline.onScroll { _, yOffset -> onScroll(yOffset) }
@@ -19,19 +18,7 @@ class ZoomManager(
 
     private fun onScroll(yOffset: Double) {
         zoom *= zoomSpeed.pow(-yOffset.toFloat())
-    }
-
-    fun pushed(function: () -> Unit) {
-        draw {
-            pushed {
-                translate(
-                    x = window.width / 2 * (1 - zoom),
-                    y = window.height / 2 * (1 - zoom),
-                    z = 0f
-                )
-                scale(zoom, zoom, 0f)
-                function()
-            }
-        }
+        glLoadIdentity()
+        glOrtho(0.0, window.width * zoom.toDouble(), window.height * zoom.toDouble(), 0.0, 0.0, 1.0)
     }
 }

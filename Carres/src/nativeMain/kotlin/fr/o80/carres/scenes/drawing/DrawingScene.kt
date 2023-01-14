@@ -74,7 +74,6 @@ class DrawingScene(
 
         this.zoomManager = ZoomManager(window, scrollPipeline, drawingSettings.zoomSpeed)
         val convertMousePositionToGrid = ConvertMousePositionToGrid(
-            zoomManager,
             window,
             margin,
             columnWidth,
@@ -110,64 +109,62 @@ class DrawingScene(
 
     override suspend fun render() {
         draw {
-            zoomManager.pushed {
-                clear(background)
+            clear(background)
 
-                mousePositionManager.positionInGrid
-                    ?.takeIf {
-                        it.x >= drawingObjective.columnsCountInHorizontal && it.y >= drawingObjective.rowsCountInVertical
-                    }
-                    ?.let {
-                        drawHover(
-                            margin = margin,
-                            columnWidth = columnWidth,
-                            rowHeight = rowHeight,
-                            position = it
-                        )
-                    }
+            mousePositionManager.positionInGrid
+                ?.takeIf {
+                    it.x >= drawingObjective.columnsCountInHorizontal && it.y >= drawingObjective.rowsCountInVertical
+                }
+                ?.let {
+                    drawHover(
+                        margin = margin,
+                        columnWidth = columnWidth,
+                        rowHeight = rowHeight,
+                        position = it
+                    )
+                }
 
-                currentDrawing.render(
-                    columnWidth = columnWidth,
-                    rowHeight = rowHeight,
-                )
+            currentDrawing.render(
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
+            )
 
-                drawNumbersBackground(
-                    width = window.width,
-                    height = window.height,
-                    margin = margin,
-                    columnWidth = columnWidth,
-                    rowHeight = rowHeight,
-                    columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
-                    rowsCountInVertical = drawingObjective.rowsCountInVertical,
-                )
+            drawNumbersBackground(
+                width = window.width,
+                height = window.height,
+                margin = margin,
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
+                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                rowsCountInVertical = drawingObjective.rowsCountInVertical,
+            )
 
-                drawGrid(
-                    width = window.width,
-                    height = window.height,
-                    margin = margin,
-                    columnWidth = columnWidth,
-                    rowHeight = rowHeight,
-                    columnsCounts = drawingObjective.columnsCount,
-                    rowsCounts = drawingObjective.rowsCount,
-                    columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
-                    rowsCountInVertical = drawingObjective.rowsCountInVertical,
-                )
+            drawGrid(
+                width = window.width,
+                height = window.height,
+                margin = margin,
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
+                columnsCounts = drawingObjective.columnsCount,
+                rowsCounts = drawingObjective.rowsCount,
+                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                rowsCountInVertical = drawingObjective.rowsCountInVertical,
+            )
 
-                drawNumbers(
-                    margin = margin,
-                    columnWidth = columnWidth,
-                    rowHeight = rowHeight,
-                    verticalNumbers = drawingObjective.verticalNumbers,
-                    horizontalNumbers = drawingObjective.horizontalNumbers,
-                    columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
-                    rowsCountInVertical = drawingObjective.rowsCountInVertical,
-                )
+            drawNumbers(
+                margin = margin,
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
+                verticalNumbers = drawingObjective.verticalNumbers,
+                horizontalNumbers = drawingObjective.horizontalNumbers,
+                columnsCountInHorizontal = drawingObjective.columnsCountInHorizontal,
+                rowsCountInVertical = drawingObjective.rowsCountInVertical,
+            )
 
-                toolManager.render(
-                    columnWidth = columnWidth,
-                    rowHeight = rowHeight,
-                )
-            }
+            toolManager.render(
+                columnWidth = columnWidth,
+                rowHeight = rowHeight,
+            )
         }
     }
 
@@ -250,7 +247,7 @@ class DrawingScene(
 
     private fun Draw.drawNumber(top: Float, left: Float, width: Float, height: Float, value: Int) {
         pushed {
-            lineWidth(numberWidth * zoomManager.zoom)
+            lineWidth(numberWidth)
             color(numbersColor)
             translate(left, top, 0f)
             translate(numberMargin * width, numberMargin * height, 0f)
@@ -274,7 +271,7 @@ class DrawingScene(
         columnsCountInHorizontal: Int,
         rowsCountInVertical: Int
     ) {
-        lineWidth(gridWidth * zoomManager.zoom)
+        lineWidth(gridWidth)
         color(gridColor)
 
         val horizontalNumbersWidth = columnsCountInHorizontal * columnWidth
