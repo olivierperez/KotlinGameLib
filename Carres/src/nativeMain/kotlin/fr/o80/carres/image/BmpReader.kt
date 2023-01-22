@@ -9,7 +9,6 @@ class BmpReader {
     fun read(path: Path): Image {
         return FileSystem.SYSTEM.read(path) {
             val bm = readByteArray(2)
-            println("bm: ${bm.decodeToString()}")
 
             readByteArray(4) // File size
             readByteArray(4) // Application info
