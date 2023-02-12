@@ -35,13 +35,15 @@ kotlin {
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("okio.ExperimentalFileSystem")
         }
-        val nativeMain by getting {
-            val okioVersion = "3.0.0"
-            dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
-                api("com.squareup.okio:okio:$okioVersion")
-            }
-        }
+        val nativeMain by getting
         val nativeTest by getting
     }
+}
+
+dependencies {
+    commonMainApi(project(mapOf("path" to ":loaders:fontatlas-loader")))
+
+    val okioVersion = "3.0.0"
+    commonMainApi("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    commonMainApi("com.squareup.okio:okio:$okioVersion")
 }

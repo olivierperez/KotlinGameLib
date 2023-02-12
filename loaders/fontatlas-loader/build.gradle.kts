@@ -12,11 +12,7 @@ kotlin {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
         isMingwX64 -> mingwX64("native") {
-            val main by compilations.getting {
-                dependencies {
-                    implementation(project(":GameLib"))
-                }
-            }
+            val main by compilations.getting
         }
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }

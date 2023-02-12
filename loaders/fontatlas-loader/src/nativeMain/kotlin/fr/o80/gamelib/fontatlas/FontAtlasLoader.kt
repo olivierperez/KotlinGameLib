@@ -1,7 +1,6 @@
 package fr.o80.gamelib.fontatlas
 
 import okio.BufferedSource
-import okio.Source
 import okio.buffer
 import okio.use
 
@@ -114,8 +113,4 @@ private fun BufferedSource.readChars(): Map<Char, FontAtlasChar> {
     }
 
     return chars
-}
-
-interface ContentProvider {
-    fun provide(): Source
 }
