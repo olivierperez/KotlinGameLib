@@ -1,0 +1,10 @@
+headers = glew/glew.h glew/wglew.h
+#headers = glew/include/GL/glew.h glew/include/GL/wglew.h
+headerFilter = glew/*
+
+compilerOpts = -o glew -I.
+
+linkerOpts = -Lcinterop -lgdi32 -lopengl32
+
+staticLibraries = glew32.lib glew32.dll
+libraryPaths = glew/
