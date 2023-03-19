@@ -1,6 +1,7 @@
 package fr.o80.carres.image
 
-import fr.o80.gamelib.dsl.Vertex3i
+import fr.o80.carres.image.palette.PaletteReader
+import fr.o80.carres.image.palette.PaletteReaderFactory
 import okio.ByteString.Companion.toByteString
 import okio.FileSystem
 import okio.Path
@@ -8,7 +9,7 @@ import okio.Path
 class BmpReader {
     fun read(path: Path): Image {
         return FileSystem.SYSTEM.read(path) {
-            val bm = readByteArray(2)
+            readByteArray(2) // "BM"
 
             readByteArray(4) // File size
             readByteArray(4) // Application info
@@ -17,15 +18,14 @@ class BmpReader {
 
             val width = readByteArray(4).getULittleEndian()
             val height = readByteArray(4).getULittleEndian()
-            val colors = Array(width * height) { Vertex3i(0xFF, 0xFF, 0xFF) }
 
             readByteArray(2) // Plan = 0x01
 
             val colorBytes = readByteArray(2).getULittleEndian()
-            check(colorBytes == 24) { "Only 24 bits color is implemented" }
+            check(colorBytes == 24 || colorBytes == 32) { "Only 24 bits & 32 bits color is implemented, found: $colorBytes" }
 
             val compression = readByteArray(4).getULittleEndian()
-            check(compression == 0) { "No compression allowed" }
+            check(compression == 0 || compression == 3) { "No compression allowed, found: $compression" }
 
             readByteArray(4) // image data size
 
@@ -35,29 +35,15 @@ class BmpReader {
             readByteArray(4) // Colors per palette
             readByteArray(4) // Primary colors per palette
 
-            val skipAtEOL = (4 - (width * 3)) % 4L
-            repeat(height) { h ->
-                val heightIndex = height - h - 1
-                repeat(width) { widthIndex ->
-                    val color = readByteArray(3).getColor()
-                    colors[widthIndex + heightIndex * width] = color
-                }
-                readByteArray(skipAtEOL)
-            }
+            val paletteReader: PaletteReader = PaletteReaderFactory().create(colorBytes, width, height)
+            val colors = paletteReader.readImage(this)
 
             Image(width, height, colors)
         }
     }
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
-private fun ByteArray.getColor(): Vertex3i {
-    val red = getUByteAt(2).toInt()
-    val green = getUByteAt(1).toInt()
-    val blue = getUByteAt(0).toInt()
 
-    return Vertex3i(red, green, blue)
-}
 
 private fun ByteArray.getULittleEndian(): Int {
     return foldRight(0) { byte, acc -> acc * 256 + byte.toUByte().toInt() }

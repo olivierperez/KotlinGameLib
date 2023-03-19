@@ -1,5 +1,6 @@
 package fr.o80.carres.image
 
+import fr.o80.carres.font.FontTexture
 import fr.o80.gamelib.fontatlas.FontAtlas
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
@@ -13,7 +14,7 @@ class TextureLoader {
         return Texture(
             image.width,
             image.height,
-            createTexture(image)
+            createTexture(image, GL_NEAREST, GL_NEAREST)
         )
     }
 
@@ -21,27 +22,35 @@ class TextureLoader {
         return FontTexture(
             image.width,
             image.height,
-            createTexture(image),
+            createTexture(image, GL_LINEAR, GL_LINEAR),
             fontAtlas
         )
     }
 
-    private fun createTexture(image: Image) = memScoped {
+    private fun createTexture(
+        image: Image,
+        magFilter: Int,
+        minFilter: Int
+    ) = memScoped {
         val texture = alloc<GLuintVar>()
         glGenTextures(1, texture.ptr)
 
         glBindTexture(GL_TEXTURE_2D, texture.value)
 
-        val pixels = image.colors
-            .map { (red, green, blue) ->
-                blue.shl(16) + green.shl(8) + red
-            }
-            .toIntArray()
+        val pixels = image.colors.flatMap { (a, r, g, b) ->
+            listOf(r.toByte(), g.toByte(), b.toByte(),  a.toByte())
+        }.toByteArray()
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter)
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
 
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
-            GL_RGB,
+            GL_RGBA,
             image.width,
             image.height,
             0,
@@ -49,9 +58,6 @@ class TextureLoader {
             GL_UNSIGNED_BYTE,
             pixels.refTo(0)
         )
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
         glBindTexture(GL_TEXTURE_2D, 0)
 

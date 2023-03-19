@@ -2,10 +2,11 @@ package fr.o80.carres.scenes.main
 
 import fr.o80.carres.CarresSceneManager
 import fr.o80.carres.image.BmpReader
-import fr.o80.carres.image.FontTexture
+import fr.o80.carres.font.FontTexture
 import fr.o80.carres.image.Texture
 import fr.o80.carres.image.TextureLoader
 import fr.o80.gamelib.Scene
+import fr.o80.gamelib.model.Color
 import fr.o80.gamelib.dsl.draw
 import fr.o80.gamelib.fontatlas.FileContentProvider
 import fr.o80.gamelib.fontatlas.FontAtlas
@@ -27,7 +28,7 @@ class MainScene(
     private lateinit var fontAtlas: FontAtlas
     private lateinit var fontTexture: FontTexture
 
-    private var texture: Texture? = null
+    private lateinit var logoTexture: Texture
 
     private lateinit var size: Pair<Int, Int>
 
@@ -47,9 +48,9 @@ class MainScene(
         try {
             val imagePath = "images/logo.bmp".toPath()
             val image = BmpReader().read(imagePath)
-            texture = TextureLoader().loadTexture(image)
+            logoTexture = TextureLoader().loadTexture(image)
 
-            fontAtlas = fontAtlasLoader.load(FileContentProvider("fonts/Platinum Sign Over.fnt".toPath()))
+            fontAtlas = fontAtlasLoader.load(FileContentProvider("fonts/Elnath.fnt".toPath()))
             val fontImagePath = ("fonts/" + fontAtlas.pages.first().file).toPath()
             val fontImage = BmpReader().read(fontImagePath)
             fontTexture = TextureLoader().loadFontTexture(fontAtlas, fontImage)
@@ -59,6 +60,8 @@ class MainScene(
     }
 
     override fun close() {
+        logoTexture.unload()
+        fontTexture.unload()
     }
 
     override suspend fun update() {
@@ -68,15 +71,20 @@ class MainScene(
         draw {
             clear(.098f)
 
-            texture?.let {
-                pushed {
-                    translate(size.first / 2f - it.width / 2f, size.second / 2f - it.height / 2f, 0f)
-                    it.render()
-                }
+
+            pushed {
+                translate(size.first / 2f - logoTexture.width / 2f, size.second / 2f - logoTexture.height / 2f, 0f)
+                logoTexture.render()
             }
 
             pushed {
-                fontTexture.render('A', 50f)
+                translate(10f, 10f, 0f)
+                fontTexture.render(
+                    "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                    maxWidth = 1000f,
+                    maxHeight = 50f,
+                    color = Color(a = 255, r = 255, g = 255, b = 255)
+                )
             }
         }
     }

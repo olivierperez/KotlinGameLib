@@ -1,5 +1,6 @@
 package fr.o80.gamelib.dsl
 
+import fr.o80.gamelib.model.Color
 import platform.opengl32.*
 import kotlin.math.cos
 import kotlin.math.pow
@@ -136,6 +137,11 @@ class Draw {
     }
 
     @Drawer
+    fun color(color: Color) {
+        glColor4f(color.r / 255f, color.g / 255f, color.b / 255f, color.a / 255f)
+    }
+
+    @Drawer
     fun lineWidth(width: Float) {
         glLineWidth(width)
     }
@@ -181,9 +187,10 @@ class Draw {
     }
 
     @Drawer
-    inline fun texture2d(block: () -> Unit) {
+    inline fun texture2d(withAlpha: Boolean = false, block: () -> Unit) {
         glEnable(GL_TEXTURE_2D)
         glEnable(GL_BLEND)
+        if (withAlpha) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         block()
         glDisable(GL_BLEND)
         glDisable(GL_TEXTURE_2D)

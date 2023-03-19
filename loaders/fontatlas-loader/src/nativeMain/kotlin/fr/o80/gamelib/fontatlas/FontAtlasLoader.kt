@@ -11,7 +11,7 @@ private val commonRegex =
 private val pageRegex =
     "page id=(\\d+) file=\"([^\"]+)\"".toRegex()
 private val charRegex =
-    "char id=(\\d+) +x=(\\d+) +y=(\\d+) +width=(\\d+) +height=(\\d+) +xoffset=(-?\\d+) +yoffset=(-?\\d+) +xadvance=(-?\\d+) +page=(\\d+) +chnl=(\\d+) +".toRegex()
+    "char id=(\\d+) +x=(\\d+) +y=(\\d+) +width=(\\d+) +height=(\\d+) +xoffset=(-?\\d+) +yoffset=(-?\\d+) +xadvance=(-?\\d+) +page=(\\d+) +chnl=(\\d+) *".toRegex()
 
 class FontAtlasLoader {
     fun load(provider: ContentProvider): FontAtlas {

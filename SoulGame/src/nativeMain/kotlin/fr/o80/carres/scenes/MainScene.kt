@@ -8,6 +8,7 @@ import fr.o80.gamelib.loop.MouseMovePipeline
 import fr.o80.gamelib.loop.Window
 import fr.o80.gamelib.service.Services
 import fr.o80.carres.SoulSceneManager
+import fr.o80.gamelib.loop.ScrollPipeline
 import interop.*
 
 class MainScene(
@@ -19,7 +20,8 @@ class MainScene(
         services: Services,
         keyPipeline: KeyPipeline,
         mouseButtonPipeline: MouseButtonPipeline,
-        mouseMovePipeline: MouseMovePipeline
+        mouseMovePipeline: MouseMovePipeline,
+        scrollPipeline: ScrollPipeline
     ) {
         keyPipeline.onKey(GLFW_KEY_ESCAPE, GLFW_PRESS) { sceneManager.quit() }
     }
