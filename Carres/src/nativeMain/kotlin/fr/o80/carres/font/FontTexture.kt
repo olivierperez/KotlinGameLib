@@ -18,6 +18,7 @@ class FontTexture(
         maxWidth: Float,
         maxHeight: Float,
         color: Color,
+        textAlign: TextAlign = TextAlign.Left,
         debug: Boolean = false
     ) {
         val prepared = prepareFullText(text, fontAtlas)
@@ -40,11 +41,12 @@ class FontTexture(
                 glBindTexture(GL_TEXTURE_2D, id)
 
                 glBegin(GL_QUADS)
+                val generalXOffset = textAlign.xOffset(maxWidth, displayWidth)
 
                 prepared.forEach { char ->
-                    val drawingStartX = (char.drawingX / textWidth) * displayWidth
+                    val drawingStartX = generalXOffset + (char.drawingX / textWidth) * displayWidth
                     val drawingStartY = (char.drawingY / textHeight) * displayHeight
-                    val drawingEndX = ((char.drawingX + char.width) / textWidth) * displayWidth
+                    val drawingEndX = generalXOffset + ((char.drawingX + char.width) / textWidth) * displayWidth
                     val drawingEndY = ((char.drawingY + char.height) / textHeight) * displayHeight
 
                     glTexCoord2f(char.atlasStartX, char.atlasStartY)
